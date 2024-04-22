@@ -1,3 +1,6 @@
+use std::str::FromStr;
+use std::io::Error;
+
 #[derive(Debug)]
 pub struct Question {
     id: QuestionId,
@@ -39,5 +42,18 @@ impl std::fmt::Display for Question {
             "{}, title: {}, content: {}, tags: {:?}",
             self.id, self.title, self.content, self.tags
         )
+    }
+}
+
+impl FromStr for QuestionId {
+    type Err = Error;
+
+    fn from_str(id: &str) -> Result<Self, Self::Err> {
+        match id.is_empty() {
+            false => Ok(QuestionId(id.to_string())),
+            true => Err(
+                Error::new(std::io::ErrorKind::InvalidInput, "No id provided")
+            ),
+        }
     }
 }
