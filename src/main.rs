@@ -1,12 +1,18 @@
-use std::str::FromStr;
+use axum::{routing::get, Router};
+use std::net::SocketAddr;
 
 mod questions;
-fn main() {
-    let question = questions::Question::new(
-        questions::QuestionId::from_str("1").expect("No id provided"),
-        "First Question".to_string(),
-        "Content of question".to_string(),
-        Some(vec!("faq".to_string()))
-    );
-    println!("{}", question);
+#[tokio::main]
+async fn main() {
+    let hello = Router::new().route("/", get(say_hello));
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    axum::Server::bind(&addr)
+        .serve(hello.into_make_service())
+        .await
+        .unwrap()
+}
+
+async fn say_hello() -> &'static str {
+    "Hello, World!"
 }
