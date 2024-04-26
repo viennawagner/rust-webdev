@@ -2,7 +2,7 @@ use std::io::Error;
 use std::str::FromStr;
 use axum::response::{Response, IntoResponse};
 use reqwest::StatusCode;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub struct InvalidId;
@@ -10,14 +10,14 @@ impl IntoResponse for InvalidId {
     fn into_response(self) -> Response { (StatusCode::INTERNAL_SERVER_ERROR, "Invalid Joke Id").into_response() }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Question {
     pub id: QuestionId,
     pub title: String,
     pub content: String,
     pub tags: Option<Vec<String>>,
 }
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Hash)]
 pub struct QuestionId(pub String);
 impl FromStr for QuestionId {
     type Err = Error;

@@ -24,6 +24,7 @@ async fn get_questions() -> Result<Json<questions::Question>, Response> {
 
 #[tokio::main]
 async fn main() {
+    let store = Store::new();
     //Function for route "/questions"
     let get_items = Router::new().route("/questions", get(get_questions));
 
