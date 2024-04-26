@@ -1,10 +1,10 @@
-use axum::{extract::{rejection::JsonRejection, Json}, routing::get, Router};
+use axum::{extract::Json, response::{Response, IntoResponse}, routing::get, Router};
 use std::net::SocketAddr;
 use std::str::FromStr;
 
 mod questions;
 
-async fn get_questions() -> Result<Json<questions::Question>, JsonRejection> {
+async fn get_questions() -> Result<Json<questions::Question>, Response> {
     let question = questions::Question::new(
         questions::QuestionId::from_str("1").expect("No id provided"),
         "First Question".to_string(),
@@ -12,7 +12,14 @@ async fn get_questions() -> Result<Json<questions::Question>, JsonRejection> {
         Some(vec!("faq".to_string())),
     );
 
-    Ok(Json(question))
+    match question.id.0.parse::<i32>() {
+        Err(_) => {
+            Err(questions::InvalidId.into_response())
+        },
+        Ok(_) => {
+            Ok(Json(question))
+        }
+    }
 }
 
 #[tokio::main]
