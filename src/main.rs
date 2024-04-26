@@ -1,4 +1,4 @@
-use axum::{extract::{rejection::JsonRejection, Json}, response::IntoResponse, routing::get, Router};
+use axum::{extract::{rejection::JsonRejection, Json}, routing::get, Router};
 use std::net::SocketAddr;
 use std::str::FromStr;
 
@@ -27,8 +27,4 @@ async fn main() {
         .serve(get_items.into_make_service())
         .await
         .unwrap()
-}
-
-async fn say_hello() -> &'static str {
-    "Hello, World!"
 }
