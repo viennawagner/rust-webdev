@@ -1,7 +1,7 @@
 use crate::*;
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Store {
-    pub questions: HashMap<questions::QuestionId, questions::Question>,
+    pub questions: HashMap<QuestionId, Question>,
 }
 
 ///Storage for questions and, later, answers until we get a database up.
@@ -15,13 +15,13 @@ impl Store {
     }
 
     ///Add the given question to memory
-    pub fn add_question(mut self, question: questions::Question) -> Self {
+    pub fn add_question(mut self, question: Question) -> Self {
         self.questions.insert(question.id.clone(), question);
         self
     }
 
     /// Initializes with questions.json for now
-    pub fn init() -> HashMap<questions::QuestionId, questions::Question> {
+    pub fn init() -> HashMap<QuestionId, Question> {
         let file = include_str!("../questions.json");
         serde_json::from_str(file).expect("can't read questions.json")
     }

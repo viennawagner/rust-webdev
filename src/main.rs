@@ -9,22 +9,25 @@ use std::collections::HashMap;
 mod questions;
 mod api;
 
+use questions::*;
+use api::*;
+
 async fn get_questions(
     params: Query<HashMap<String, String>>,
-    store: api::Store
-) -> Result<Json<Vec<questions::Question>>, Response> {
+    store: Store
+) -> Result<Json<Vec<Question>>, Response> {
     let mut start = 0;
     if let Some(n) = params.get("start") {
         start = n.parse::<usize>().expect("Could not parse start");
     }
-    let res: Vec<questions::Question> = store.questions.values().cloned().collect();
+    let res: Vec<Question> = store.questions.values().cloned().collect();
 
     Ok(Json(res))
 }
 
 #[tokio::main]
 async fn main() {
-    let store = api::Store::new();
+    let store = Store::new();
     //Function for route "/questions"
     let get_items = Router::new().route("/questions", get(get_questions));
 
