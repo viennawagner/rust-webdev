@@ -1,15 +1,29 @@
 use std::io::Error;
 use std::str::FromStr;
+use serde::Serialize;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Question {
     id: QuestionId,
     title: String,
     content: String,
     tags: Option<Vec<String>>,
 }
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct QuestionId(pub String);
+impl FromStr for QuestionId {
+    type Err = Error;
+
+    fn from_str(id: &str) -> Result<Self, Self::Err> {
+        match id.is_empty() {
+            false => Ok(QuestionId(id.to_string())),
+            true => Err(Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "No id provided",
+            )),
+        }
+    }
+}
 
 impl Question {
     pub fn new(id: QuestionId, title: String, content: String, tags: Option<Vec<String>>) -> Self {
@@ -38,16 +52,3 @@ impl std::fmt::Display for Question {
     }
 }
 
-impl FromStr for QuestionId {
-    type Err = Error;
-
-    fn from_str(id: &str) -> Result<Self, Self::Err> {
-        match id.is_empty() {
-            false => Ok(QuestionId(id.to_string())),
-            true => Err(Error::new(
-                std::io::ErrorKind::InvalidInput,
-                "No id provided",
-            )),
-        }
-    }
-}
