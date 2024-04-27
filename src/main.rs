@@ -8,14 +8,18 @@ use std::collections::HashMap;
 
 mod questions;
 mod api;
+mod faqerror;
 
 use questions::*;
 use api::*;
+use faqerror::*;
 
+//Get questions based on browser query
 async fn get_questions(
     params: Query<HashMap<String, String>>,
     store: Store
 ) -> Result<Json<Vec<Question>>, Response> {
+    //parse query and set the start id accordingly
     let mut start = 0;
     if let Some(n) = params.get("start") {
         start = n.parse::<usize>().expect("Could not parse start");
