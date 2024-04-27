@@ -1,29 +1,27 @@
-use axum::{extract::{Query, Json}, response::{Response, IntoResponse}, routing::get, Router};
-use std::net::SocketAddr;
-use serde::{Deserialize, Serialize};
-use std::str::FromStr;
-use std::io::Error;
+use axum::{
+    extract::Json,
+    response::{IntoResponse, Response},
+    routing::get,
+    Router,
+};
 use reqwest::StatusCode;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::io::Error;
+use std::net::SocketAddr;
+use std::str::FromStr;
 
-mod questions;
 mod api;
 mod faqerror;
+mod questions;
 
-use questions::*;
 use api::*;
-use faqerror::*;
+use questions::*;
 
 //Get questions based on browser query
 async fn get_questions(
-    params: Query<HashMap<String, String>>,
-    store: Store
+    store: Store,
 ) -> Result<Json<Vec<Question>>, Response> {
-    //parse query and set the start id accordingly
-    let mut start = 0;
-    if let Some(n) = params.get("start") {
-        start = n.parse::<usize>().expect("Could not parse start");
-    }
     let res: Vec<Question> = store.questions.values().cloned().collect();
 
     Ok(Json(res))

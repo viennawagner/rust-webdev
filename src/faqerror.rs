@@ -10,7 +10,7 @@ impl std::fmt::Display for FaqError {
         match *self {
             FaqError::ParseError(ref err) => {
                 write!(f, "Cannot parse parameter: {}", err)
-            },
+            }
             FaqError::MissingParameters => write!(f, "Missing parameter"),
         }
     }
@@ -20,7 +20,7 @@ impl IntoResponse for FaqError {
         let body = match self {
             FaqError::ParseError(ref err) => {
                 format!("Cannot parse parameter: {}", err)
-            },
+            }
             FaqError::MissingParameters => "Missing parameter".to_string(),
         };
         (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
