@@ -1,10 +1,11 @@
 use crate::*;
 
 #[derive(Debug)]
-enum FaqError {
+pub enum FaqError {
     ParseError(std::num::ParseIntError),
     MissingParameters,
 }
+
 impl std::fmt::Display for FaqError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
@@ -23,6 +24,5 @@ impl IntoResponse for FaqError {
             }
             FaqError::MissingParameters => "Missing parameter".to_string(),
         };
-        (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
-    }
+        (StatusCode::INTERNAL_SERVER_ERROR, body).into_response() }
 }

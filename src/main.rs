@@ -1,43 +1,97 @@
 use axum::{
-    extract::Json,
-    response::{IntoResponse, Response},
+    extract::{Json, State},
+    response::{IntoResponse, Response, IntoResponseParts},
     routing::get,
     Router,
 };
+use axum_macros::debug_handler;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Error;
-use std::net::SocketAddr;
 use std::str::FromStr;
 
 mod api;
 mod faqerror;
 mod questions;
+mod utils;
 
 use api::*;
 use questions::*;
+use faqerror::*;
+use utils::*;
+ 
+#[derive(Clone)]
+struct AppState {
+    store: Store,
+    params: HashMap<String, String>,
+}
+
+impl AppState {
+    fn new(store: Store, params: HashMap<String, String>) -> Self {
+        Self {
+            store,
+            params,
+        }
+    }
+}
+ 
+//Set pagination info from the given parameters
+fn extract_pagination(
+    params: HashMap<String, String>
+) -> Result<Pagination, FaqError> {
+    if params.contains_key("start") && params.contains_key("end") {
+        return Ok(Pagination {
+            start: params
+                .get("start")
+                .unwrap()
+                .parse::<usize>()
+                .map_err(FaqError::ParseError)?,
+            end: params
+                .get("end")
+                .unwrap()
+                .parse::<usize>()
+                .map_err(FaqError::ParseError)?,
+        });
+    }
+ 
+    Err(FaqError::MissingParameters)
+}
 
 //Get questions based on browser query
+#[debug_handler]
 async fn get_questions(
-    store: Store,
-) -> Result<Json<Vec<Question>>, Response> {
-    let res: Vec<Question> = store.questions.values().cloned().collect();
-
-    Ok(Json(res))
-}
+    State(AppState{store, params}): State<AppState>,
+) -> Result<impl IntoResponse, FaqError> {
+    if !params.is_empty() {
+        let pagination = extract_pagination(params)?;
+        let res: Vec<Question> = store.questions.values().cloned().collect();
+        let res = &res[pagination.start..pagination.end];
+        Ok(Json(res.to_owned()))
+    } else {
+        let res: Vec<Question> = store.questions.values().cloned().collect();
+        let res = &res[0..res.len()];
+        Ok(Json(res.to_owned()))
+    }
+} 
 
 #[tokio::main]
 async fn main() {
     let store = Store::new();
+    let params = HashMap::from([
+        ("start".to_string(), "0".to_string()),
+        ("end".to_string(), "10".to_string()),
+    ]);
+
+    let state = AppState::new(store, params);
     //Function for route "/questions"
-    let get_items = Router::new().route("/questions", get(get_questions));
+    let app = Router::new().route("/questions", get(get_questions))
+    .with_state(state);
 
     //Base addr
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = tokio::net::TcpListener::bind("127.0.0.1:3000").await.unwrap();
     //Serve on the addr
-    axum::Server::bind(&addr)
-        .serve(get_items.into_make_service())
+    axum::serve(addr, app)
         .await
         .unwrap()
 }

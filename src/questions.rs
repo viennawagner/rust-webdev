@@ -15,6 +15,7 @@ pub struct Question {
     pub content: String,
     pub tags: Option<Vec<String>>,
 }
+
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, Hash)]
 pub struct QuestionId(pub String);
 impl FromStr for QuestionId {
