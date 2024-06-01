@@ -1,7 +1,7 @@
 use crate::*;
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Debug)]
 pub struct Store {
-    pub questions: HashMap<QuestionId, Question>,
+    pub questions: Arc<RwLock<HashMap<QuestionId, Question>>>,
 }
 
 ///Storage for questions and, later, answers until we get a database up.
@@ -10,13 +10,13 @@ pub struct Store {
 impl Store {
     pub fn new() -> Self {
         Store {
-            questions: HashMap::new(),
+            questions: Arc::new(RwLock::new(Self::init())),
         }
     }
 
     ///Add the given question to memory
-    pub fn add_question(mut self, question: Question) -> Self {
-        self.questions.insert(question.id.clone(), question);
+    pub async fn add_question(self, question: Question) -> Self {
+        self.questions.write().await.insert(question.id.clone(), question);
         self
     }
 
