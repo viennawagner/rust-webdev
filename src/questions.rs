@@ -1,10 +1,11 @@
+
 use crate::*;
 
 #[derive(Debug)]
 pub struct InvalidId;
 impl IntoResponse for InvalidId {
-    fn into_response(self) -> Response {
-        (StatusCode::INTERNAL_SERVER_ERROR, "Invalid Joke Id").into_response()
+    fn into_response(self) -> Response<Body> {
+        (StatusCode::INTERNAL_SERVER_ERROR, "Invalid Joke Id".to_string()).into_response()
     }
 }
 
