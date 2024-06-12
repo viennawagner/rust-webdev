@@ -1,7 +1,5 @@
-use crate::*;
-
 #[derive(Debug)]
 pub struct Pagination {
-    pub start: usize,
-    pub end: usize,
+    pub limit: Option<u32>,
+    pub offset: u32,
 }

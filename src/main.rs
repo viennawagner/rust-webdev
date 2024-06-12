@@ -11,8 +11,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::Error;
 use std::str::FromStr;
-use std::sync::Arc;
-use tokio::sync::RwLock;
+use sqlx::postgres::{PgPoolOptions, PgPool, PgRow};
+use sqlx::Row;
 
 mod api;
 mod store;
@@ -42,21 +42,27 @@ impl AppState {
 }
  
 //Set pagination info from the given parameters
-fn extract_pagination(
+pub fn extract_pagination(
     params: HashMap<String, String>
 ) -> Result<Pagination, FaqError> {
-    if params.contains_key("start") && params.contains_key("end") {
+    // Could be improved in the future
+    if  params.contains_key("limit") && params.contains_key("offset") {
         return Ok(Pagination {
-            start: params
-                .get("start")
+            // Takes the "limit" parameter in the query
+            // and tries to convert it to a number
+            limit: Some(params
+                .get("limit")
                 .unwrap()
-                .parse::<usize>()
-                .map_err(FaqError::ParseError)?,
-            end: params
-                .get("end")
+                .parse::<u32>()
+                .map_err(FaqError::ParseError)?),
+            // Takes the "offset" parameter in the query
+            // and tries to convert it to a number
+            offset: params
+                .get("offset")
                 .unwrap()
-                .parse::<usize>()
+                .parse::<u32>()
                 .map_err(FaqError::ParseError)?,
+ 
         });
     }
  
@@ -65,14 +71,15 @@ fn extract_pagination(
 
 #[tokio::main]
 async fn main() {
-    let store = Store::new();
+    let store =
+        store::Store::new("postgres:/ /localhost:5432/rustwebdev").await;
     let params = HashMap::from([
         ("start".to_string(), "0".to_string()),
         ("end".to_string(), "10".to_string()),
     ]);
 
     let state = AppState::new(store, params);
-    //Function for get method on "/questions"
+    //Function for get methods on "/questions"
     let get_route = Router::new()
         .route("/questions", get(get_questions))
         .route("/questions/add", post(add_question))

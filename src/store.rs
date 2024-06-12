@@ -1,28 +1,66 @@
 use crate::*;
 #[derive(Clone, Debug)]
 pub struct Store {
-    pub questions: Arc<RwLock<HashMap<QuestionId, Question>>>,
+    pub connection: PgPool,
 }
 
-///Storage for questions and, later, answers until we get a database up.
-/// Internally, the data is stored in a HashMap where the ids are the keys,
-/// this allows for quicker lookup.
+///Communication with the database
 impl Store {
-    pub fn new() -> Self {
+    pub async fn new(db_url: &str) -> Self {
+        let db_pool = match PgPoolOptions::new()
+        .max_connections(5)
+        .connect(db_url).await {
+            Ok(pool) => pool,
+            Err(e) => panic!("Couldn't establish DB connection:{}", e), 
+        };
+   
         Store {
-            questions: Arc::new(RwLock::new(Self::init())),
+            connection: db_pool,
         }
     }
 
-    ///Add the given question to memory
-    pub async fn add_question(self, question: Question) -> Self {
-        self.questions.write().await.insert(question.id.clone(), question);
-        self
+    ///Get all questions from memory
+    pub async fn get_questions(
+        &self,
+    ) -> Result<Vec<Question>, FaqError> {
+        match sqlx::query("SELECT * from questions")
+            .map(|row: PgRow| Question {
+                id: QuestionId(row.get("id")),
+                title: row.get("title"),
+                content: row.get("content"),
+                tags: row.get("tags"),
+            })
+            .fetch_all(&self.connection)
+            .await {
+                Ok(questions) => Ok(questions),
+                Err(e) => {
+                    Err(FaqError::DatabaseError(e))
+                }
+            }
     }
 
-    /// Initializes with questions.json for now
-    pub fn init() -> HashMap<QuestionId, Question> {
-        let file = include_str!("../questions.json");
-        serde_json::from_str(file).expect("can't read questions.json")
-    }
+pub async fn add_question(
+   &self, 
+   new_question: NewQuestion
+) -> Result<Question, sqlx::Error> {
+   match sqlx::query(
+       "INSERT INTO questions (title, content, tags) 
+       VALUES ($1, $2, $3)"
+   )
+    .bind(new_question.title)
+    .bind(new_question.content)
+    .bind(new_question.tags)
+    .map(|row: PgRow| Question {
+         id: QuestionId(row.get("id")),
+         title: row.get("title"),
+         content: row.get("content"),
+         tags: row.get("tags"),
+     })
+    .fetch_one(&self.connection)
+    .await {
+         Ok(question) => Ok(question),
+         Err(e) => Err(e),
+     }
+}
+
 }
