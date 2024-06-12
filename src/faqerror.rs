@@ -27,5 +27,6 @@ impl IntoResponse for FaqError {
             FaqError::MissingParameters => "Missing parameter".to_string(),
             FaqError::DatabaseError(e) => format!("Database Error: {}", e),
         };
-        (StatusCode::INTERNAL_SERVER_ERROR, body).into_response() }
+        (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
+    }
 }

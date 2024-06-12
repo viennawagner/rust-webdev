@@ -1,19 +1,22 @@
-
 use crate::*;
 
 #[derive(Debug)]
 pub struct InvalidId;
 impl IntoResponse for InvalidId {
     fn into_response(self) -> Response<Body> {
-        (StatusCode::INTERNAL_SERVER_ERROR, "Invalid Joke Id".to_string()).into_response()
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "Invalid Joke Id".to_string(),
+        )
+            .into_response()
     }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct NewQuestion {
-   pub title: String,
-   pub content: String,
-   pub tags: Option<Vec<String>>,  
+    pub title: String,
+    pub content: String,
+    pub tags: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
