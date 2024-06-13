@@ -57,3 +57,14 @@ pub async fn delete_question(
 
     Ok(Json(format!("Question {} deleted", id)))
 }
+
+pub async fn add_answer(
+    State(AppState { store, .. }): State<AppState>,
+    Json(new_answer): Json<NewAnswer>,
+) -> Result<impl IntoResponse, FaqError> {
+    if let Err(e) = store.add_answer(new_answer).await {
+        return Err(FaqError::DatabaseError(e));
+    }
+
+    Ok(Json("Answer added"))
+}

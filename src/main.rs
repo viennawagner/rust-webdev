@@ -14,12 +14,14 @@ use std::collections::HashMap;
 use std::io::Error;
 use std::str::FromStr;
 
+mod answer;
 mod api;
 mod faqerror;
 mod questions;
 mod store;
 mod utils;
 
+use answer::*;
 use api::*;
 use faqerror::*;
 use questions::*;
@@ -80,6 +82,7 @@ async fn main() {
         .route("/questions/add", post(add_question))
         .route("/questions/update", put(update_question))
         .route("/questions/delete", delete(delete_question))
+        .route("/questions/answer", post(add_answer))
         .with_state(state);
 
     //Base addr
