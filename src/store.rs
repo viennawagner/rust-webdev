@@ -21,7 +21,7 @@ impl Store {
         }
     }
 
-    ///Get all questions from memory
+    ///Get all questions from database
     pub async fn get_questions(&self) -> Result<Vec<Question>, FaqError> {
         match sqlx::query("SELECT * from questions")
             .map(|row: PgRow| Question {
@@ -38,6 +38,7 @@ impl Store {
         }
     }
 
+    ///Add question to database
     pub async fn add_question(&self, new_question: NewQuestion) -> Result<Question, sqlx::Error> {
         match sqlx::query(
             "INSERT INTO questions (title, content, tags) 
@@ -59,4 +60,33 @@ impl Store {
             Err(e) => Err(e),
         }
     }
+
+///Change function with given ID to given value
+pub async fn update_question(
+   &self, 
+   question: Question, 
+   question_id: i32
+) -> Result<Question, sqlx::Error> {
+    match sqlx::query(
+       "UPDATE questions
+        SET title = $1, content = $2, tags = $3
+        WHERE id = $4
+        RETURNING id, title, content, tags"
+    )
+   .bind(question.title)
+   .bind(question.content)
+   .bind(question.tags)
+   .bind(question_id)
+   .map(|row: PgRow| Question {
+        id: QuestionId(row.get("id")),
+        title: row.get("title"),
+        content: row.get("content"),
+        tags: row.get("tags"),
+   })
+   .fetch_one(&self.connection)
+   .await {
+       Ok(question) => Ok(question),
+       Err(e) => Err(e),
+   }
+}
 }

@@ -2,7 +2,7 @@ use axum::body::Body;
 use axum::{
     extract::{Json, State},
     response::{IntoResponse, Response},
-    routing::{get, post},
+    routing::{get, post, put},
     Router,
 };
 use axum_macros::debug_handler;
@@ -78,6 +78,7 @@ async fn main() {
     let get_route = Router::new()
         .route("/questions", get(get_questions))
         .route("/questions/add", post(add_question))
+        .route("/questions/update", put(update_question))
         .with_state(state);
 
     //Base addr

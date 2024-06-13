@@ -34,3 +34,15 @@ pub async fn add_question(
 
     Ok(Json("Question added"))
 }
+
+pub async fn update_question(
+    State(AppState { store, .. }): State<AppState>,
+    Json((question, id)): Json<(Question, i32)>,
+) -> Result<impl IntoResponse, FaqError> {
+    let res = match store.update_question(question, id).await {
+        Ok(res) => res,
+        Err(e) => return Err(FaqError::DatabaseError(e)),
+    };
+
+    Ok(Json(res))
+}
