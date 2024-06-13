@@ -34,7 +34,7 @@ struct AppState {
 }
 
 impl AppState {
-    fn new(store: Store ) -> Self {
+    fn new(store: Store) -> Self {
         Self { store }
     }
 }
