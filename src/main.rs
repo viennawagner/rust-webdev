@@ -31,12 +31,11 @@ use utils::*;
 #[derive(Clone)]
 struct AppState {
     store: Store,
-    params: HashMap<String, String>,
 }
 
 impl AppState {
-    fn new(store: Store, params: HashMap<String, String>) -> Self {
-        Self { store, params }
+    fn new(store: Store ) -> Self {
+        Self { store }
     }
 }
 
@@ -70,19 +69,15 @@ pub fn extract_pagination(params: HashMap<String, String>) -> Result<Pagination,
 #[tokio::main]
 async fn main() {
     let store = store::Store::new("postgres://default:1234@localhost:5432/postgres").await;
-    let params = HashMap::from([
-        ("start".to_string(), "0".to_string()),
-        ("end".to_string(), "10".to_string()),
-    ]);
 
-    let state = AppState::new(store, params);
+    let state = AppState::new(store);
     //Function for get methods on "/questions"
     let get_route = Router::new()
         .route("/questions", get(get_questions))
-        .route("/questions/add", post(add_question))
-        .route("/questions/update", put(update_question))
-        .route("/questions/delete", delete(delete_question))
-        .route("/questions/answer", post(add_answer))
+        .route("/questions", post(add_question))
+        .route("/questions", put(update_question))
+        .route("/questions", delete(delete_question))
+        .route("/answers", post(add_answer))
         .with_state(state);
 
     //Base addr
