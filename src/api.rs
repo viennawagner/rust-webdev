@@ -3,7 +3,7 @@ use crate::*;
 //Get questions based on browser query
 #[debug_handler]
 pub async fn get_questions(
-    State(AppState { store, params }): State<AppState>,
+    State(AppState { store, .. }): State<AppState>,
 ) -> Result<impl IntoResponse, FaqError> {
     //let pagination = extract_pagination(params);
 
@@ -45,4 +45,15 @@ pub async fn update_question(
     };
 
     Ok(Json(res))
+}
+
+pub async fn delete_question(
+    State(AppState { store, .. }): State<AppState>,
+    Json(id): Json<i32>,
+) -> Result<impl IntoResponse, FaqError> {
+    if let Err(e) = store.delete_question(id).await {
+        return Err(FaqError::DatabaseError(e));
+    };
+
+    Ok(Json(format!("Question {} deleted", id)))
 }

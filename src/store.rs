@@ -63,30 +63,42 @@ impl Store {
 
     ///Change function with given ID to given value
     pub async fn update_question(
-       &self, 
-       question: Question, 
-       question_id: i32
+        &self,
+        question: Question,
+        question_id: i32,
     ) -> Result<Question, sqlx::Error> {
         match sqlx::query(
-           "UPDATE questions
+            "UPDATE questions
             SET title = $1, content = $2, tags = $3
             WHERE id = $4
-            RETURNING id, title, content, tags"
+            RETURNING id, title, content, tags",
         )
-       .bind(question.title)
-       .bind(question.content)
-       .bind(question.tags)
-       .bind(question_id)
-       .map(|row: PgRow| Question {
+        .bind(question.title)
+        .bind(question.content)
+        .bind(question.tags)
+        .bind(question_id)
+        .map(|row: PgRow| Question {
             id: QuestionId(row.get("id")),
             title: row.get("title"),
             content: row.get("content"),
             tags: row.get("tags"),
-       })
-       .fetch_one(&self.connection)
-       .await {
-           Ok(question) => Ok(question),
-           Err(e) => Err(e),
-       }
+        })
+        .fetch_one(&self.connection)
+        .await
+        {
+            Ok(question) => Ok(question),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn delete_question(&self, question_id: i32) -> Result<bool, sqlx::Error> {
+        match sqlx::query("DELETE FROM questions WHERE id = $1")
+            .bind(question_id)
+            .execute(&self.connection)
+            .await
+        {
+            Ok(_) => Ok(true),
+            Err(e) => Err(e),
+        }
     }
 }
