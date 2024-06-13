@@ -67,7 +67,7 @@ pub fn extract_pagination(params: HashMap<String, String>) -> Result<Pagination,
 
 #[tokio::main]
 async fn main() {
-    let store = store::Store::new("postgres:/ /localhost:5432/rustwebdev").await;
+    let store = store::Store::new("postgres://default:1234@localhost:5432/postgres").await;
     let params = HashMap::from([
         ("start".to_string(), "0".to_string()),
         ("end".to_string(), "10".to_string()),
